@@ -17,6 +17,8 @@ function Template( options = {} ){
         views_folder : '',
         logic : Logic,
     }, options );
+
+    this.included_views = [];
 }
 
 Template.prototype.setViewPath = function( view_file ){
@@ -51,6 +53,10 @@ Template.prototype.new = function( view_file, Data = {}, Buffer ){
     let template;
 
     this.setViewPath( view_file );
+
+    if( this.included_views.indexOf( this.view_path.relative ) == -1 ){
+        this.included_views.push( this.view_path.relative );
+    }
 
     if( fs.existsSync( this.view_path.full ) ){
         template = fs.readFileSync( this.view_path.full, 'utf8' );
