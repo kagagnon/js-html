@@ -19,6 +19,10 @@ function Template( options = {} ){
     }, options );
 }
 
+Template.prototype.setViewPath = function( view_file ){
+    this.view_path = this.getViewPath( view_file );
+}
+
 Template.prototype.getViewPath = function( view_file ){
     let path_parts = view_file.split( /[\/\.]/g ),
         no_ext_path = this.options.views_folder + path_parts.join( '/' ),
@@ -46,7 +50,7 @@ Template.prototype.getViewPath = function( view_file ){
 Template.prototype.new = function( view_file, Data = {}, Buffer ){
     let template;
 
-    this.view_path = this.getViewPath( view_file );
+    this.setViewPath( view_file );
 
     if( fs.existsSync( this.view_path.full ) ){
         template = fs.readFileSync( this.view_path.full, 'utf8' );
