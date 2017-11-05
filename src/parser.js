@@ -78,6 +78,7 @@ Parser.prototype.parseTemplate = function( cached_view_path ){
 
     this.writeFile( cached_view_path + ".js", compiled_js_string );
 
+    delete require.cache[ require.resolve( cached_view_path ) ];
     let cached_template = require( cached_view_path );
 
     return cached_template( this.Template, this.Buffer, this.Data );
