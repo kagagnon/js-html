@@ -71,7 +71,7 @@ module.exports = {
         parser : function( full, args_string ){
             let args = parseArgsString( args_string );
             let view = args[ 0 ].trim();
-            let data = args[ 1 ] || {};
+            let data = args[ 1 ] || "{}";
             return `Template.options.logic.extends.build( Buffer, ${ view }, ${ data } );\n`;
         },
         build : function( Buffer, partial_view, Data ){
