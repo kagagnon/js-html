@@ -47,7 +47,7 @@ Buffer.prototype.echo = function( section = false, Data ){
 
     if( this.extending_view ){
         let view = this.extending_view.name;
-        deepExtend( Data, this.extending_view.date );
+        deepExtend( Data, this.extending_view.data );
         this.extending_view = null;
         return this.Template.new( view, Data, this ).render();
     }
