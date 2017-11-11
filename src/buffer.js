@@ -1,3 +1,5 @@
+const deepExtend = require( 'deep-extend' );
+
 function Buffer( Template ){
     this.Template = Template;
     this.sections = {};
@@ -30,8 +32,8 @@ Buffer.prototype.endSection = function(){
     this.current_buffer.pop();
 }
 
-Buffer.prototype.setExtend = function( view_name ){
-    this.extending_view = view_name;
+Buffer.prototype.setExtend = function( view_name, Data = {} ){
+    this.extending_view = { name : view_name, data : Data };
 }
 
 Buffer.prototype.echo = function( section = false, Data ){
@@ -44,7 +46,8 @@ Buffer.prototype.echo = function( section = false, Data ){
     }
 
     if( this.extending_view ){
-        let view = this.extending_view;
+        let view = this.extending_view.name;
+        deepExtend( Data, this.extending_view.date );
         this.extending_view = null;
         return this.Template.new( view, Data, this ).render();
     }

@@ -39,7 +39,6 @@ function parseArgsString( args_string, addition_arg_flag = '' ){
 
                 if( args_string[ i ] == group_end_chars[ current_group_index ] ){
                     current_groups.pop();
-                    continue;
                 }
             }else{
                 if( args_string[ i ] == ',' ){
@@ -72,10 +71,11 @@ module.exports = {
         parser : function( full, args_string ){
             let args = parseArgsString( args_string );
             let view = args[ 0 ].trim();
-            return `Template.options.logic.extends.build( Buffer, ${ view } );\n`;
+            let data = args[ 1 ] || {};
+            return `Template.options.logic.extends.build( Buffer, ${ view }, ${ data } );\n`;
         },
-        build : function( Buffer, partial_view ){
-            Buffer.setExtend( partial_view );
+        build : function( Buffer, partial_view, Data ){
+            Buffer.setExtend( partial_view, Data );
         }
     },
     'yield' : {
