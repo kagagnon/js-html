@@ -5,7 +5,7 @@ const deepExtend = require( 'deep-extend' );
 const Parser = require( './parser' );
 const Logic = require( './logic' );
 
-const extension = ".js.html";
+const extension = ".jshtml";
 const codebehind = ".codebehind.js";
 
 
