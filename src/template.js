@@ -1,5 +1,6 @@
 const fs = require( 'fs' );
-const deepExtend = require('deep-extend');
+const path = require( 'path' );
+const deepExtend = require( 'deep-extend' );
 
 const Parser = require( './parser' );
 const Logic = require( './logic' );
@@ -9,16 +10,22 @@ const codebehind = ".codebehind.js";
 
 
 function Template( options = {} ){
-    if( options.views_folder && options.views_folder.slice( -1 ) !== '/' ){
-        options.views_folder += "/";
-    }
-
     this.options = deepExtend( {
-        views_folder : '',
+        views_folder : '.',
         logic : Logic,
     }, options );
 
-    this.included_views = [];
+    if( !path.isAbsolute( this.options.views_folder ) ){
+        this.options.views_folder = path.resolve( process.cwd(), this.options.views_folder );
+    }
+
+    this.dependencies = [];
+}
+
+Template.prototype.addDependency = function( file_path ){
+    if( this.dependencies.indexOf( file_path ) == -1 ){
+        this.dependencies.push( file_path );
+    }
 }
 
 Template.prototype.setViewPath = function( view_file ){
@@ -27,26 +34,36 @@ Template.prototype.setViewPath = function( view_file ){
 
 Template.prototype.getViewPath = function( view_file ){
     let path_parts = view_file.split( /[\/\.]/g ),
-        no_ext_path = this.options.views_folder + path_parts.join( '/' ),
-        path = this.options.views_folder + path_parts.join( '/' ) + extension;
+        no_ext_path = path.resolve( this.options.views_folder, path.join( ...path_parts ) ),
+        ext_path = no_ext_path + extension;
 
-    if( !fs.existsSync( path  ) ){
+    if( !fs.existsSync( ext_path  ) ){
         path_parts.push( "_" + path_parts.pop() );
-        no_ext_path = this.options.views_folder + path_parts.join( '/' ),
-        path = this.options.views_folder + path_parts.join( '/' ) + extension;
+        no_ext_path = path.resolve( this.options.views_folder, path.join( ...path_parts ) );
+        ext_path = no_ext_path + extension;
 
-        if( !fs.existsSync( path  ) ){
+        if( !fs.existsSync( ext_path  ) ){
             throw new Error( `View [${ view_file }] does not exists.` );
         }
     }
 
     return {
-        relative_no_ext : path_parts.join( '/' ),
-        relative : path_parts.join( '/' ) + extension,
         full_no_ext : no_ext_path,
-        full : path,
+        full : ext_path,
     };
 
+}
+
+Template.prototype.unifyData = function( Data = {} ){
+    try{
+        delete require.cache[ this.view_path.full_no_ext + codebehind ];
+        var CodeBehind = require( this.view_path.full_no_ext + codebehind );
+
+        this.addDependency( this.view_path.full_no_ext + codebehind );
+        Data = CodeBehind( Data );
+    }catch( err ){}
+
+    return Data;
 }
 
 Template.prototype.new = function( view_file, Data = {}, Buffer ){
@@ -54,19 +71,14 @@ Template.prototype.new = function( view_file, Data = {}, Buffer ){
 
     this.setViewPath( view_file );
 
-    if( this.included_views.indexOf( this.view_path.relative ) == -1 ){
-        this.included_views.push( this.view_path.relative );
-    }
+    this.addDependency( this.view_path.full );
 
     if( fs.existsSync( this.view_path.full ) ){
         template = fs.readFileSync( this.view_path.full, 'utf8' );
     }
 
-    try{
-        var CodeBehind = require( this.view_path.full_no_ext + codebehind );
 
-        Data = CodeBehind( Data );
-    }catch( err ){}
+    this.unifyData( Data )
 
     let parser =  new Parser( this, template, Data, Buffer );
 

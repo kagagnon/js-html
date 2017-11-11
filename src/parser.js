@@ -1,7 +1,8 @@
 const fs = require( 'fs' );
-const mkdirp = require('mkdirp');
-const getDirName = require('path').dirname;
-const TemplateBuffer = require('./buffer');
+const mkdirp = require( 'mkdirp' );
+const md5 = require( 'md5' )
+const path = require( 'path' );
+const TemplateBuffer = require( './buffer' );
 
 function Parser( Template, template_str, Data = {}, Buffer = new TemplateBuffer( Template ) ){
     this.Template = Template;
@@ -9,12 +10,11 @@ function Parser( Template, template_str, Data = {}, Buffer = new TemplateBuffer(
     this.Data = Data;
     this.Buffer = Buffer;
 
-    this.current_view_path = this.Template.view_path.relative_no_ext;
-    this.current_full_view_path = this.Template.view_path.full_no_ext;
+    this.current_view_path = this.Template.view_path.full_no_ext;
 }
 
 Parser.prototype.compile = function(){
-    let cached_view_path = __dirname + '/_cache/' + this.current_view_path;
+    let cached_view_path = path.resolve( __dirname, '_cache', md5( this.current_view_path ) );
     return this.parseTemplate( cached_view_path );
 }
 
@@ -101,9 +101,9 @@ Parser.prototype.parseLogic = function writeFile( logic_string ) {
     }
 }
 
-Parser.prototype.writeFile = function writeFile(path, contents) {
-    mkdirp.sync( getDirName(path) );
-    fs.writeFileSync( path, contents );
+Parser.prototype.writeFile = function writeFile( path_to_write, contents ) {
+    mkdirp.sync( path.dirname( path_to_write ) );
+    fs.writeFileSync( path_to_write, contents );
 }
 
 Parser.prototype.escapeQuotes = function( string_to_escape ){
