@@ -13,6 +13,7 @@ function Template( options = {} ){
     this.options = deepExtend( {
         views_folder : '.',
         logic : Logic,
+        shared_data : {},
     }, options );
 
     if( !path.isAbsolute( this.options.views_folder ) ){
@@ -77,7 +78,7 @@ Template.prototype.new = function( view_file, Data = {}, Buffer ){
         template = fs.readFileSync( this.view_path.full, 'utf8' );
     }
 
-
+    Data = deepExtend( this.options.shared_data, Data );
     this.unifyData( Data )
 
     let parser =  new Parser( this, template, Data, Buffer );
